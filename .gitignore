@@ -1,0 +1,8 @@
+.venv/
+
+
+*png
+*txt
+*.db
+.env
+*.DS_Store
