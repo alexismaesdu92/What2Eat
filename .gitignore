@@ -6,3 +6,4 @@
 *.db
 .env
 *.DS_Store
+*.json
