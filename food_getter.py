@@ -49,4 +49,3 @@ class ClientMistral:
 if __name__ == '__main__':
     client = ClientMistral()
     print(client.generate_answer())
-    
