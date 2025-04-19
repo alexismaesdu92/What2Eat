@@ -9,10 +9,10 @@ import time
 from pymilvus import MilvusClient
 from tqdm import tqdm
 
-from url_analyzer import ExtracterMarmiton, IngredientsFormater
-from milvus_DB_Manager import CollectionCreator, Indexor, Retriever
-from encoder import Encoder
-from categorizer import Categorizer
+from backend.url_analyzer import ExtracterMarmiton, IngredientsFormater
+from backend.milvus_DB_Manager import CollectionCreator, Indexor, Retriever
+from backend.encoder import Encoder
+from backend.categorizer import Categorizer
 
 device = torch.device("cuda" if torch.cuda.is_available() else
                       "mps" if torch.backends.mps.is_available() else 
@@ -82,9 +82,9 @@ class Scraper:
         return liens
     
     def search_on_website(self, indexor: Indexor, categorizer: Categorizer, recipe_name_getter: RecipeNameGetter)-> None:
-        iPage = 1
+        iPage = 50
         i = 1
-        while True:
+        while True and iPage < 55:
             url = self.root + f"?page={iPage}"
             if url_exists(url):
                 liens = self.search_recipe_on_page(url)
@@ -115,10 +115,10 @@ if __name__ == '__main__':
     db_path = "data/recipe.db"
     client = MilvusClient(db_path)
     collection_name = "recipe"
-    collection_creator = CollectionCreator(client, collection_name)
-    collection_creator.create_collection()
+    #collection_creator = CollectionCreator(client, collection_name)
+    #collection_creator.create_collection()
     indexor = Indexor(client, collection_name, encoder)
-    indexor.create_index()
+    #indexor.create_index()
 
     categorizer = Categorizer()
     scraper = Scraper(extracter)

@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: what2eat
+Version: 0.0.1
+Summary: Recherche et donne des idées de recette depuis une liste d'ingrédient
+Requires-Dist: beautifulsoup4==4.13.3
+Requires-Dist: bs4==0.0.2
+Requires-Dist: dotenv==0.9.9
+Requires-Dist: huggingface-hub==0.29.3
+Requires-Dist: mistralai==1.5.2
+Requires-Dist: numpy==2.2.4
+Requires-Dist: pandas==2.2.3
+Requires-Dist: pillow==11.1.0
+Requires-Dist: pymilvus==2.5.6
+Requires-Dist: sentence-transformers==4.1.0
+Requires-Dist: torch==2.6.0
+Requires-Dist: tqdm==4.67.1
+Requires-Dist: transformers==4.50.1

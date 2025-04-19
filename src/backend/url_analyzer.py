@@ -107,9 +107,6 @@ class IngredientsFormater:
             text += f"ingredient {i+1}: {ingredient['name']}" + '\n'
     
         return text 
-
-
-
     
 if __name__ == '__main__':
     url1 = "https://www.marmiton.org/recettes/recette_poke-bowl-a-l-hawaienne_344558.aspx"

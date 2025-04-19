@@ -1,0 +1,49 @@
+[project]
+name = "what2eat"
+version = "0.0.1"
+description = "Recherche et donne des idées de recette depuis une liste d'ingrédient"
+
+
+dependencies = [
+    "beautifulsoup4==4.13.3",
+    "bs4==0.0.2",
+    "dotenv==0.9.9",
+    "huggingface-hub==0.29.3",
+    "mistralai==1.5.2",
+    "numpy==2.2.4",
+    "pandas==2.2.3",
+    "pillow==11.1.0",
+    "pymilvus==2.5.6",
+    "sentence-transformers==4.1.0",
+    "torch==2.6.0",
+    "tqdm==4.67.1",
+    "transformers==4.50.1"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["backend.*", "app.*"]  
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+requires-python = ">=3.11, < 3.13"
+
+authors = [{name = "Alexis Maes", email = "alexis.maes@student-cs.fr"},
+          ]
+
+
+description = """"""
+readme = "README.md"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+[tool.project-meta]
+frontend_language = "TypeScript"
+frontend_path = "app/"

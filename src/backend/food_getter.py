@@ -3,6 +3,7 @@ from PIL import Image
 import os
 import torch
 import base64
+from dotenv import load_dotenv
 
 device = torch.device("cuda" if torch.cuda.is_available() else
                       "mps" if torch.backends.mps.is_available() else 
@@ -21,7 +22,8 @@ def encode_image_to_base64(image_path):
 class IngredientExtractor:
 
     def __init__(self):
-        API_KEY = os.getenv("MISTRAL_API_KEY")
+        load_dotenv()
+        API_KEY = os.getenv("API_KEY")
         if not API_KEY:
             raise ValueError("La clé MISTRAL_API_KEY n'est pas définie")
         self.client = Mistral(api_key = API_KEY)
@@ -50,4 +52,4 @@ class IngredientExtractor:
 if __name__ == '__main__':
     client = IngredientExtractor()
     image_path = "foodPicture/photo_ingredient2.png"
-    print(client.get_ingredients())
+    print(client.get_ingredients(image_path))

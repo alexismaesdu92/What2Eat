@@ -1,6 +1,5 @@
 from pymilvus import MilvusClient, DataType
 from dataclasses import dataclass
-import  concurrent.futures
 import torch
 from tqdm import tqdm
 from typing import Dict, List
@@ -8,7 +7,9 @@ from typing import Dict, List
 import os
 import numpy as np
 
-from encoder import Encoder
+from backend.encoder import Encoder
+
+from backend.food_getter import IngredientExtractor
 
 
 class CollectionCreator:
@@ -105,7 +106,7 @@ class Retriever:
         }
 
 
-    def retrieve(self, query_text: str, top_k: int = 1) -> List[Dict]:
+    def retrieve(self, query_text: str, top_k: int = 5) -> List[Dict]:
         """
         :param query_text: texte de ta requête (ex: "recette avec coco et curry")
         :param top_k: nombre de résultats à retourner
@@ -133,6 +134,15 @@ class Retriever:
 
         return hits
     
+    def retrieve_from_picture(self, image_path, ingredient_extractor: IngredientExtractor):
+        ingredients = ingredient_extractor.get_ingredients(image_path)
+        print("ingredients extraits")
+        print(ingredients)
+        return self.retrieve(ingredients)
+    
+
+
+
 
 
 
@@ -146,21 +156,21 @@ PATH = os.path.join(DATA_PATH, DBNAME)
 
 if __name__ == "__main__":
     encoder = Encoder()
-    db_path = "data/test.db"
+    db_path = "data/recipe.db"
     client = MilvusClient(db_path)
-    collection_name = "test_collection"
+    collection_name = "recipe"
     collection_creator = CollectionCreator(client, collection_name)
     # collection_creator.create_collection()
 
-    indexor = Indexor(client, collection_name, encoder)
+    #indexor = Indexor(client, collection_name, encoder)
     # indexor.create_index()
 
     # for i in tqdm(range(1000)):
     #     indexor.index(f"testing{i}", f"urllllll{i}", f"je mets ce qque je veux{i}")
     
     retriever = Retriever(client=client, encoder=encoder, collection_name=collection_name)
-
-    hits = retriever.retrieve("je mets ce qque je veux99")
+    ingredient_extractor = IngredientExtractor()
+    hits = retriever.retrieve_from_picture("foodPicture/photo_ingredient2.png", ingredient_extractor)
     print(hits)
     
 
