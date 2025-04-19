@@ -62,7 +62,7 @@ class ExtracterMarmiton:
             return None
 
 
-    def get_preparation_steps(self, url):
+    def get_preparation_steps(self, url:str):
         ''' Cette fonction prend en entrée un lien URL d'une recette marmiton et renvoie les étapes de préparation de la recette'''
         response = requests.get(url)
         if response.status_code == 200:
@@ -100,7 +100,7 @@ class ExtracterMarmiton:
             return None
         
 class IngredientsFormater:
-    
+    """Cet objet a pour objectif de formater la liste des ingrédients d'une recette"""
     def format_ingredients(self, list_ingredients):
         text = ''
         for i, ingredient in enumerate(list_ingredients):
@@ -115,6 +115,6 @@ if __name__ == '__main__':
     url1 = "https://www.marmiton.org/recettes/recette_poke-bowl-a-l-hawaienne_344558.aspx"
     url2 = "https://www.marmiton.org/recettes/recette_flan-au-citron-facile_35882.aspx"
     extracter = ExtracterMarmiton()
-    print(IngredientsFormater().format_ingredients(extracter.get_ingredients(url1)))
+    print(extracter.get_recipe_title(url1))
 
 

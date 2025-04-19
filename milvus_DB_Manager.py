@@ -31,11 +31,11 @@ class CollectionCreator:
         schema.add_field(field_name="nom", datatype=DataType.VARCHAR, max_length=128)
         schema.add_field(field_name="url", datatype=DataType.VARCHAR, max_length=512)
         
-        client.create_collection(collection_name=self.collection_name,
+        self.client.create_collection(collection_name=self.collection_name,
                                       schema=schema,
                                       dimension=self.dim)
         
-        print("collection crée avec succès")
+        print("collection créee avec succès")
 
 class Indexor:
     def __init__(
@@ -66,8 +66,8 @@ class Indexor:
             index_params=index_params, sync=True
         )
 
-    def index(self, recipe_name: str, url: str, recipe):
-        embedding: torch.Tensor = self.encoder.encode(recipe)  # shape: (dim,)
+    def index(self, recipe_name: str, url: str, ingredients):
+        embedding: torch.Tensor = self.encoder.encode(ingredients)  # shape: (dim,)
         
         data: Dict = {
             "vector": embedding.cpu().tolist(),  

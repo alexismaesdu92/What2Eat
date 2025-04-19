@@ -18,7 +18,7 @@ def encode_image_to_base64(image_path):
 
 
 
-class ClientMistral:
+class IngredientExtractor:
 
     def __init__(self):
         API_KEY = os.getenv("MISTRAL_API_KEY")
@@ -27,9 +27,10 @@ class ClientMistral:
         self.client = Mistral(api_key = API_KEY)
 
     
-    def generate_answer(self):
-        prompt = "Quels sont les ingrédients présent sur l'image fais uniquement une liste"
-        encoded = encode_image_to_base64("foodPicture/photo_ingredient2.png")
+    def get_ingredients(self, image_path):
+        prompt = "Tu es un agent spécialisé dans la detection d'ingredient sur des images. Tu dois donc trouver la liste exhautive et exacte des ingrédients que se trouve sur l'image qui t'es donnée.\n" +\
+                 "Tu dois simplement donner en sortie une liste énuméré des ingrédients en caractère minuscule non accentué"
+        encoded = encode_image_to_base64(image_path)
         
         content = [
             {"type": "text", "text": prompt},
@@ -47,5 +48,6 @@ class ClientMistral:
 
 
 if __name__ == '__main__':
-    client = ClientMistral()
-    print(client.generate_answer())
+    client = IngredientExtractor()
+    image_path = "foodPicture/photo_ingredient2.png"
+    print(client.get_ingredients())
