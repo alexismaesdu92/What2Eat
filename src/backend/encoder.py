@@ -6,4 +6,7 @@ class Encoder:
 
     def encode(self, text: str):
         return self.model.encode(text, convert_to_tensor=True)
+    
+
+
 
