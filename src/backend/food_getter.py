@@ -30,21 +30,24 @@ class IngredientExtractor:
 
     
     def get_ingredients(self, image_path):
-        prompt = "Tu es un agent spécialisé dans la detection d'ingredient sur des images. Tu dois donc trouver la liste exhautive et exacte des ingrédients que se trouve sur l'image qui t'es donnée.\n" +\
-                 "Tu dois simplement donner en sortie une liste énuméré des ingrédients en caractère minuscule non accentué. Tu dois etre le plus précis possible et ne pas te répéter"
-        
         encoded = encode_image_to_base64(image_path)
         
         content = [
-            {"type": "text", "text": prompt},
             {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{encoded}"}}
         ]
 
-        messages = [{"role": "user", 
+        messages = [{"role": "system", "content": "Tu es un agent spécialisé dans la detection d'ingredient sur des images." + \
+                                                  "Tu dois donc trouver la liste exhautive et exacte des ingrédients que se trouve sur l'image qui t'es donnée." + \
+                                                  "Chaque ingrédient ne doit apparaitre qu'une seule fois. Tu dois simplement donner en sortie une liste énuméré des ingrédients en caractère minuscule non accentué"},
+                    {"role": "user", 
                      "content": content}]
         response = self.client.chat.complete(
             model = "pixtral-12b-2409",
-            messages = messages
+            messages = messages,
+            temperature = 0.2,
+            top_p = 0.95,
+            frequency_penalty=0.8,
+
         )
         return response.choices[0].message.content
 
@@ -53,4 +56,4 @@ class IngredientExtractor:
 if __name__ == '__main__':
     client = IngredientExtractor()
     image_path = "foodPicture/photo_ingredient2.png"
-    print(client.get_ingredients(image_path))
+    print(rf"{client.get_ingredients(image_path)}")
