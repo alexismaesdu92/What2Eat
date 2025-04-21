@@ -31,7 +31,8 @@ class IngredientExtractor:
     
     def get_ingredients(self, image_path):
         prompt = "Tu es un agent spécialisé dans la detection d'ingredient sur des images. Tu dois donc trouver la liste exhautive et exacte des ingrédients que se trouve sur l'image qui t'es donnée.\n" +\
-                 "Tu dois simplement donner en sortie une liste énuméré des ingrédients en caractère minuscule non accentué"
+                 "Tu dois simplement donner en sortie une liste énuméré des ingrédients en caractère minuscule non accentué. Tu dois etre le plus précis possible et ne pas te répéter"
+        
         encoded = encode_image_to_base64(image_path)
         
         content = [
