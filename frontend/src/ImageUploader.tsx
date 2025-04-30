@@ -32,7 +32,8 @@ const ImageUploader: React.FC = () => {
         });
 
         const result = await response.json();
-        alert(`Fichier envoyé : ${result.filename || JSON.stringify(result)}`);
+        console.log(result);
+        alert(`Ingrédients détectés : ${result.ingredients_text || JSON.stringify(result)}`);
         console.log(result);
     };
 

@@ -26,4 +26,9 @@ async def upload_file(image: UploadFile = File(...)):
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(image.file, buffer)
     print("Image reçue avec succès")
-    return {"message": "Image reçue avec succès", "filename": image.filename}
+    extractor = IngredientExtractor()
+    ingredients_text = extractor.get_ingredients(file_location)
+    print(ingredients_text)
+    return {"message": "Image reçue avec succès", 
+            "filename": image.filename,
+            "ingredients": ingredients_text}
