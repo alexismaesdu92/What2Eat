@@ -1,0 +1,70 @@
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  main {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+  }
+  
+  .left-panel {
+    flex: 1;
+    padding: 20px;
+    background-color: #3d0303;
+    border-radius: 8px;
+    max-width: 400px;
+  }
+  
+  .right-panel {
+    flex: 2;
+    padding: 20px;
+    background-color: #074d8a;
+    border-radius: 8px;
+  }
+  
+  .ingredients-list {
+    margin-top: 20px;
+  }
+  
+  .ingredient-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  
+  .ingredient-item input[type="text"] {
+    flex: 2;
+  }
+  
+  .ingredient-item input[type="number"] {
+    flex: 1;
+    width: 80px;
+  }
+  
+  .recipes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+  }
+  
+  .recipe-card {
+    padding: 15px;
+    border: 1px solid #6a1b1b;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .recipe-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }

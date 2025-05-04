@@ -5,6 +5,7 @@ import torch
 import base64
 from dotenv import load_dotenv
 import json
+import re
 
 device = torch.device("cuda" if torch.cuda.is_available() else
                       "mps" if torch.backends.mps.is_available() else 
@@ -37,21 +38,74 @@ def extract_json_from_response(response_text):
 
 def parse_ingredients_json(json_string: str) -> list:
     try:
-        # Analyser la chaîne JSON
-        ingredients_list = json.loads(json_string)
+        # D'abord essayer de nettoyer le JSON
+        # 1. Supprimer les espaces inutiles
+        cleaned = re.sub(r'\s*"\s*', '"', json_string)
+        cleaned = re.sub(r'\s*:\s*', ':', cleaned)
+        cleaned = re.sub(r'\s*,\s*', ',', cleaned)
         
-        # Normaliser les clés pour gérer les incohérences de casse
+        # 2. Corriger les guillemets doubles répétés
+        cleaned = re.sub(r'""', '"', cleaned)
+        
+        # 3. Corriger les guillemets autour des nombres
+        cleaned = re.sub(r':("?)(\d+)("?)', r':\2', cleaned)
+        
+        try:
+            ingredients_list = json.loads(cleaned)
+        except json.JSONDecodeError:
+            # Si le nettoyage automatique échoue, on tente une approche ligne par ligne
+            lines = json_string.strip().split('\n')
+            cleaned_lines = ['[']
+            
+            for line in lines:
+                if line.strip() == '[' or line.strip() == ']':
+                    continue
+                    
+                if '{' in line and '}' in line:
+                    # Nettoyer la ligne
+                    line = re.sub(r'[{]\s*["]?\s*ingredient\s*["]?\s*:\s*["]?\s*([^"]*?)\s*["]?\s*,\s*["]?\s*amount\s*["]?\s*:\s*["]?\s*(\d+)\s*["]?\s*[}]', 
+                                r'{"ingredient":"\1","amount":\2}', line)
+                    
+                    # Ajouter la virgule si nécessaire
+                    if not line.strip().endswith(',') and '}' in line:
+                        line = line.rstrip() + ','
+                    
+                    cleaned_lines.append(line)
+            
+            # Retirer la virgule de la dernière ligne
+            if cleaned_lines[-1].endswith(','):
+                cleaned_lines[-1] = cleaned_lines[-1][:-1]
+                
+            cleaned_lines.append(']')
+            cleaned = '\n'.join(cleaned_lines)
+            
+            ingredients_list = json.loads(cleaned)
+        
+        # Normaliser les résultats
         normalized_ingredients = []
         for item in ingredients_list:
-            normalized_item = {
-                "ingredient": item.get("ingredient") or item.get("Ingredient", ""),
-                "amount": int(item.get("amount") or item.get("Amount", 0))
-            }
-            normalized_ingredients.append(normalized_item)
+            # Gérer les clés avec ou sans espaces
+            ingredient_key = next((k for k in item.keys() if 'ingredient' in k.lower()), '')
+            amount_key = next((k for k in item.keys() if 'amount' in k.lower()), '')
+            
+            ingredient = item.get(ingredient_key, '')
+            amount = item.get(amount_key, 0)
+            
+            # Assurer que amount est un entier
+            if isinstance(amount, str):
+                # Nettoyer et convertir
+                amount = re.sub(r'[^\d]', '', amount)
+                amount = int(amount) if amount else 0
+            
+            normalized_ingredients.append({
+                "ingredient": ingredient.strip(),
+                "amount": amount
+            })
             
         return normalized_ingredients
-    except json.JSONDecodeError as e:
+    except Exception as e:
         print(f"Erreur lors de l'analyse JSON: {e}")
+        print(json_string)
         return []
 
 # Exemple d'utilisation
@@ -98,18 +152,21 @@ class IngredientExtractor:
         format_prompt = """
         #Response format
 
-        Return a clean JSON object with this exact structure:
-        ```
+        Return a clean JSON array with EXACT formatting:
         [
-            {"ingredient": <ingredient1>,  "amount": <amount1>},
-            {"ingredient": <ingredient2>,  "amount": <amount2>},
+            {"ingredient": <ingredient1>, "amount": <amount1>},
+            {"ingredient": <ingredient2>, "amount": <amount2>},
             ...
         ]
-        ```
-        Do not add any other text, explanation, or comment outside the JSON object.
-        In each <ingredient> field, insert only the name of the ingredient.
-        In the <amount> field, insert an rough approximation of the amount of the ingredient in grams (do not precise the unit in the field).
-        Only use lowercase letters or numbers to fill the JSON.  Avoid accents and special characters.
+
+        CRITICAL FORMATTING RULES:
+        - Use ONLY double quotes (") for keys and string values
+        - amount must be a NUMBER without any quotes
+        - NO spaces before or after colons
+        - NO spaces inside keys or between quotes
+        - EXACT syntax with no variations
+
+        The output must be a Parsable JSON. It must have exactly the same structure all along
         """
 
         
@@ -121,18 +178,50 @@ class IngredientExtractor:
         response = self.client.chat.complete(
             model = "pixtral-12b-2409",
             messages = messages,
-            temperature = 0.2,
-            top_p = 0.95,
-            frequency_penalty=0.8,
-
+            temperature = 0.1,
+            max_tokens = 1000,
+            top_p = 0.9,
+            frequency_penalty=1,
         )
         output = response.choices[0].message.content
-        print(f"Response: {output}")
         return parse_ingredients_json(extract_json_from_response(output))
+    
+    def get_ingredients2(self, image_path):
+        # ÉTAPE 1: Utiliser le modèle multimodal uniquement pour identifier les ingrédients
+        encoded = encode_image_to_base64(image_path)
+        content = [{"type": "image_url", "image_url": {"url": f"data:image/png;base64,{encoded}"}}]
+        
+        simple_prompt = "List all the ingredients visible in this image. Return only ingredient names separated by commas, nothing else. Count them only once  and do not repeat them in your answer. Be as precise as possible. Do not add any other information."
+        
+        messages = [
+            {"role": "system", "content": "You are a food ingredient detection agent."},
+            {"role": "user", "content": content},
+            {"role": "user", "content": simple_prompt}
+        ]
+        
+        response = self.client.chat.complete(
+            model="pixtral-12b-2409",
+            messages=messages,
+            temperature=0.1,
+            max_tokens=300  # Moins de tokens nécessaires pour une liste simple
+        )
+        
+        # ÉTAPE 2: Construire le JSON manuellement
+        ingredient_text = response.choices[0].message.content.strip()
+        print(ingredient_text)
+        ingredient_list = [item.strip() for item in ingredient_text.split(',')]
+        
+        # Créer la structure JSON nous-mêmes
+
+        
+        return ingredient_list
+        
+
+
 
 
 
 if __name__ == '__main__':
     client = IngredientExtractor()
     image_path = "foodPicture/photo_ingredient2.png"
-    print(client.get_ingredients(image_path))
+    print(client.get_ingredients2(image_path))
